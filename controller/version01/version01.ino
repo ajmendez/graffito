@@ -1,6 +1,5 @@
-/* JoyStick Debug
+/* Telescope Controller Version 01
 Mendez Apr 2014
-
 */
 
 
@@ -13,10 +12,10 @@ String time;
 int inbyte;
 unsigned long last;
 
-int DIRX = 16;
-int DIRY = 17;
-int POS = 37;
-int NEG = 36;
+const int DIRX = 16;
+const int DIRY = 17;
+const int POS = 37;
+const int NEG = 36;
 int MOVE[] = {59, 4, 13, 0, 0, 0, 0};
 
 int istatus = 0;
@@ -58,36 +57,90 @@ void showSpinner() {
   }
 }
 
-void lcdWrite() {
-  lcd.setCursor(0,0);
-//  lcd.print("[000.000,000.000]");
-//  lcd.setCursor(0, 1);
-//  lcd.print("X:");
-//  lcd.print(jx);
-//  lcd.print(" Y:");
-//  lcd.print(jy);
-//  lcd.print("        ");
-}
-
-
-
-
 void telescopeStatus() {
+  /* Read and Parse any status received from the telescope.
+  */
   if (Uart.available() > 0) {
-    if ( (millis()-last) > 500 ) Serial.println("");
-    last = millis();
+//    if ( (millis()-last) > 500 ) Serial.println("");
+//    last = millis();
     
     inbyte = Uart.read();
-    if (inbyte == 59) istatus = 0;
+    if (inbyte == 59) {
+      if (istatus > 0) {
+        printArray("Status: ", STATUS);
+      }
+      clearArray(STATUS);
+      istatus = 0;
+    }
     STATUS[istatus] = inbyte;
     istatus++;
     
-    Serial.print(inbyte);
-    Serial.print(' ');
-    lcd.setCursor(0,3);
-    lcd.print(inbyte);
-    lcd.print('.');
+    if (istatus == 8) parseStatus();
+    
+//    Serial.print(inbyte);
+//    Serial.print(' ');
+//    lcd.setCursor(0,3);
+//    lcd.print(inbyte);
+//    lcd.print('.');
   }
+}
+
+
+String parseArgs(int imax) {
+  String out;
+  char tmp[2];
+  for (int i=0; i<imax+1; i++) {
+    sprintf(tmp, "%d", STATUS[4+i]);
+    out += tmp;
+  }
+  return out;
+}
+
+String  parseUnknown(int s) {
+  char out[3];
+  sprintf(out,"? [%03d]", s);
+  return (String)out;
+}
+
+String parseCommand() {
+  String out = "";
+  int s = STATUS[2]; 
+  switch (s) {
+    case POS:
+      out = "Move +" + parseArgs(1);
+      break;
+    case NEG:
+      out = "Move -" + parseArgs(1);
+      break;
+    default:
+      out = parseUnknown(STATUS[2]);
+      break;
+  }
+  return out;
+}
+
+String parseMotor() {
+  String out = "";
+  int s = STATUS[3];
+  switch (s) {
+    case DIRX: 
+      out = "X";
+      break;
+    case DIRY: 
+      out = "Y"; 
+      break;
+    default:
+      out = parseUnknown(STATUS[3]);
+      break;
+  }
+  return out;
+}
+
+void parseStatus() {
+  // Parse the status
+  String out = "";
+  out += parseCommand();
+  out += parseMotor();
 }
 
 
@@ -111,20 +164,27 @@ int getSpeed(int j) {
 
 
 
+void clearArray(int m[]) {
+  for (int i=0; i<7; i++) {
+    m[i] = 0;
+  }
+}
 
-
-void printArray(int m[]) {
+void printArray(String mesg, int m[]) {
   /* Write a command array to the lcd screen
   */
+  Serial.print(mesg);
+  
   char tmp[2];
   lcd.setCursor(2,4);
   Serial.println();
   for (int i=0; i<7; i++) {
     sprintf(tmp, "%02X", m[i]);
-//    Serial.print(m[i]);
-//    Serial.print(' ');
+    Serial.print(m[i]);
+    Serial.print(' ');
     lcd.print(tmp);
   }
+  Serial.println();
 }
 
 
@@ -145,7 +205,7 @@ void sendSpeed(int dir, int spd) {
   MOVE[5] = abs(spd);
   MOVE[6] = checksum(MOVE);
   
-  printArray(MOVE);
+  printArray("Move: ", MOVE);
   sendMove(MOVE);
 }
 
