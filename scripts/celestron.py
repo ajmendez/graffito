@@ -39,6 +39,7 @@ import ntplib
 class Celestron:
     devpath = "/dev/ttyUSB0"
     devpath = "/dev/tty.usbserial-A100OZXL"
+    devpath = '/dev/tty.usbmodem12341'
     cmdlist = {
         'test'            : 'Kx',
         'cancel'        : 'M',

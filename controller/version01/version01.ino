@@ -19,7 +19,7 @@ const int NEG = 36;
 int MOVE[] = {59, 4, 13, 0, 0, 0, 0};
 
 int istatus = 0;
-int STATUS[] = {0, 0, 0, 0, 0, 0, 0};
+int LAST[] = {0, 0, 0, 0, 0, 0, 0};
 
 int START[] = {};
 
@@ -67,9 +67,9 @@ void telescopeStatus() {
     inbyte = Uart.read();
     if (inbyte == 59) {
       if (istatus > 0) {
-        printArray("Status: ", STATUS);
+        printArray("Status: ", LAST);
       }
-      clearArray(STATUS);
+      clearArray(LAST);
       istatus = 0;
     }
     STATUS[istatus] = inbyte;
@@ -90,7 +90,7 @@ String parseArgs(int imax) {
   String out;
   char tmp[2];
   for (int i=0; i<imax+1; i++) {
-    sprintf(tmp, "%d", STATUS[4+i]);
+    sprintf(tmp, "%d", LAST4+i]);
     out += tmp;
   }
   return out;
@@ -113,7 +113,7 @@ String parseCommand() {
       out = "Move -" + parseArgs(1);
       break;
     default:
-      out = parseUnknown(STATUS[2]);
+      out = parseUnknown(LAST[2]);
       break;
   }
   return out;
@@ -121,7 +121,7 @@ String parseCommand() {
 
 String parseMotor() {
   String out = "";
-  int s = STATUS[3];
+  int s = LAST[3];
   switch (s) {
     case DIRX: 
       out = "X";
@@ -130,7 +130,7 @@ String parseMotor() {
       out = "Y"; 
       break;
     default:
-      out = parseUnknown(STATUS[3]);
+      out = parseUnknown(LAST[3]);
       break;
   }
   return out;
@@ -248,6 +248,8 @@ void setup() {
   Serial.begin(19200);
   Uart.begin(19200);
   lcd.begin(16, 4);
+  
+  
 }
 
 

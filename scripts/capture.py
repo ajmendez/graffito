@@ -15,7 +15,8 @@ import serial
 
 
 def main():
-    device = '/dev/tty.usbserial-A100OZXL'
+    # device = '/dev/tty.usbserial-A100OZXL'
+    device = '/dev/tty.usbmodem12341'
     baud = 19200
     # parity = False
     # stop = 1 bit
@@ -48,36 +49,43 @@ def main():
 
 
 
-def test():
-    UP = ['3b', '04', '0d', '11', '24', '07', 'b1']
-    URETURN = ['3b', '0d', '04', '11', '24', '09', 'b1']
-    STOP = ['3b', '04', '0d', '11', '24', '00', 'ba']
-    SRETURN = ['3b', '0d', '04', '11', '24', '00', 'ba']
-           
-    
-    device = '/dev/tty.usbserial-A100OZXL'
-    baud = 19200
-    with serial.Serial(device, baud, 
-                       timeout=0.1, 
-                       parity=serial.PARITY_NONE,
-                       dsrdtr=0, rtscts=0) as s:
-        for x in UP:
-            s.write((x.decode('hex')))
-        
-        print s.read(8).encode('hex')
-        # for x in ['3b', '04', '0d', '10', '24', '01', 'ba']:
-        #     s.write((x.decode('hex')))
-        
-        time.sleep(2)
-        
-        for x in STOP:
-            s.write((x.decode('hex')))
-        
-        print s.read(8).encode('hex')
+
+
+
+# def test():
+#     UP = ['3b', '04', '0d', '11', '24', '07', 'b1']
+#     URETURN = ['3b', '0d', '04', '11', '24', '09', 'b1']
+#     STOP = ['3b', '04', '0d', '11', '24', '00', 'ba']
+#     SRETURN = ['3b', '0d', '04', '11', '24', '00', 'ba']
+#            
+#     
+#     device = '/dev/tty.usbserial-A100OZXL'
+#     device = '/dev/tty.usbmodem12341'
+#     baud = 19200
+#     with serial.Serial(device, baud, 
+#                        timeout=0.1, 
+#                        parity=serial.PARITY_NONE,
+#                        dsrdtr=0, rtscts=0) as s:
+#         for x in UP:
+#             s.write((x.decode('hex')))
+#         
+#         print s.read(8).encode('hex')
+#         # for x in ['3b', '04', '0d', '10', '24', '01', 'ba']:
+#         #     s.write((x.decode('hex')))
+#         
+#         time.sleep(2)
+#         
+#         for x in STOP:
+#             s.write((x.decode('hex')))
+#         
+#         print s.read(8).encode('hex')
         
 
 if __name__ == '__main__':
-    if 'test' in sys.argv[1:]:
-        test()
-    else:
-        main()
+    main()
+    # if 'test' in sys.argv[1:]:
+    #     test()
+    # if 'talk' in sys.argv[1:]:
+    #     talk()
+    # else:
+    #     main()

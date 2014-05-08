@@ -67,7 +67,8 @@ class Mount(serial.Serial):
         
 
 def main():
-    device = '/dev/tty.usbserial-A100OZXL'
+    # device = '/dev/tty.usbserial-A100OZXL'
+    device =  '/dev/tty.usbmodem12341'
     # device = '/dev/tty.usb'
     baud = 19200
     timeout = 0.1
