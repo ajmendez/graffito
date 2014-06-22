@@ -125,7 +125,7 @@ def get_data(command, cmd):
     
     
     elif command == 'location':
-        if len(cmd) == 9:
+        if ncmd  == 9:
             return get_location(cmd[5:7])
         else:
             return 'request'
@@ -202,7 +202,12 @@ def parse(cmd):
     
     return '{:60s} | {}'.format(template.format(**items), cmd)
 
-
+def write(s, XX):
+    for x in XX:
+        s.write(chr(x))
+        print '{: 3d}'.format(x), 
+        # print '[{}]'.format(chr(x).encode('hex')),
+    print 'sent'
 
 def main(device=DEVICE, baud=BAUD, timeout=TIMEOUT):
     '''Listen to the device and attempt to write out some nice data 
