@@ -72,7 +72,7 @@ void telescopeStatus() {
       clearArray(LAST);
       istatus = 0;
     }
-    STATUS[istatus] = inbyte;
+    LAST[istatus] = inbyte;
     istatus++;
     
     if (istatus == 8) parseStatus();
@@ -90,7 +90,7 @@ String parseArgs(int imax) {
   String out;
   char tmp[2];
   for (int i=0; i<imax+1; i++) {
-    sprintf(tmp, "%d", LAST4+i]);
+    sprintf(tmp, "%d", LAST[i]);
     out += tmp;
   }
   return out;
@@ -104,7 +104,7 @@ String  parseUnknown(int s) {
 
 String parseCommand() {
   String out = "";
-  int s = STATUS[2]; 
+  int s = LAST[2]; 
   switch (s) {
     case POS:
       out = "Move +" + parseArgs(1);

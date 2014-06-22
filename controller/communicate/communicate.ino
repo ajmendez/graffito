@@ -1,5 +1,6 @@
 /* Telescope Controller Version 01
 Mendez Apr 2014
+Read the values coming out of the telescope
 */
 
 
@@ -59,46 +60,51 @@ void showSpinner() {
 void telescopeStatus() {
   /* Read and Parse any status received from the telescope.*/
   if (Uart.available() > 0) {
-//    if ( (millis()-last) > 500 ) Serial.println("");
-//    last = millis();    
     inbyte = Uart.read();
     if (inbyte == 59) {
       if (istatus > 0) {
         printStatus();
       }
-      
-//      istatus = 0;
     }
     STATUS[istatus] = inbyte;
     istatus++;
   }
 }
 
-
-String parseArgs(int imax) {
-  String out;
-  char tmp[2];
-  for (int i=0; i<imax+1; i++) {
-    sprintf(tmp, "%d", STATUS[i]);
-    out += tmp;
+String printMC(int i) {
+  switch (i) {
+    case 13: return "MC";
+    case 16: return "AT";
+    case 17: return "AZ";
   }
-  return out;
 }
 
-
-
+char tmp[2];
 void printStatus() {
   /* Write a command array to the lcd screen */
-//  Serial.print(mesg);
   
-  char tmp[2];
-//  lcd.setCursor(2,4);
+  lcd.setCursor(0,4);
   Serial.println();
   for (int i=0; i<istatus; i++) {
     sprintf(tmp, "%02X", STATUS[i]);
     Serial.print(STATUS[i]);
     Serial.print(' ');
-//    lcd.print(tmp);
+    switch (i) {
+      case 0:
+        break;
+      case 2:
+        lcd.print(printMC(STATUS[i]));
+        lcd.print('>');
+        break;
+      case 3:
+        lcd.print(printMC(STATUS[i]));
+        lcd.print(' ');
+        break;
+      default:
+        lcd.print(STATUS[i]);
+        lcd.print(' ');
+        break;
+    }
     STATUS[i] = 0;
   }
   Serial.println();

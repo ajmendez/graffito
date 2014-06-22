@@ -91,11 +91,11 @@ def get_value(arr):
 def get_location(arr):
     '''Return the location as a fraction of a circle.
     TODO: check the value in the alt vs az -- might be 180 vs 360.'''
-    return 'L{:0.2f}'.format(get_value(arr)*360.0)
+    return 'L{:0.6f}'.format(get_value(arr)*360.0)
 
 def get_guiderate(arr):
     '''Return the 24bit guide rate as a decimal'''
-    return '{:0.4f}'.format(get_value(arr))
+    return '{:0.6f}'.format(get_value(arr))
 
 def get_data(command, cmd):
     '''parse the data from the command.
@@ -121,7 +121,7 @@ def get_data(command, cmd):
         if ncmd == 9:
             return get_location(cmd[5:7])
         elif ncmd == 7:
-            return 'OK' if cmd[5] else 'Failed?'
+            return 'OK' if cmd[5]==1 else 'Failed?'
     
     
     elif command == 'location':
