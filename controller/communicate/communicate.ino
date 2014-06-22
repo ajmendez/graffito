@@ -1,11 +1,37 @@
-/* Debug communication 
-   Mendez May 2014
+/* Telescope Controller Version 01
+Mendez Apr 2014
 */
 
+
+#include <stdio.h>
 #include <LiquidCrystal.h>
 
+String time;
+int inbyte;
+unsigned long last;
+
+const int DIRX = 16;
+const int DIRY = 17;
+const int POS = 37;
+const int NEG = 36;
+int MOVE[] = {59, 4, 13, 0, 0, 0, 0};
+
+int istatus = 0;
+int STATUS[] = {0, 0, 0, 0, 0, 0, 0};
+
+int START[] = {};
+
+byte SLASH[8] = {B0,16,8,4,2,1,B0}; // it is not clear why i need to specify B0 rather than 0
+
+
+// initialize the library with the numbers of the interface pins
+//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 LiquidCrystal lcd(PIN_B0, PIN_B1, PIN_B2, PIN_B3, PIN_B7, PIN_D0);
+
+// Lets grab a serial device to talk to the telescope
+// This is connected to PIN_D2,PIN_D3 -- RX/TX
 HardwareSerial Uart = HardwareSerial();
+
 
 
 void showSpinner() {
@@ -14,7 +40,7 @@ void showSpinner() {
   lcd.setCursor(19, 0);
   switch (tmp) {
     case 0: 
-      lcd.print((char)127);
+      lcd.write((byte)0); // custom slash char.
       break;
     case 1: 
       lcd.print('|');
@@ -30,99 +56,69 @@ void showSpinner() {
 
 
 
-
-void clearArray(int m[]) {
-  for (int i=0; i<7; i++) {
-    m[i] = 0;
-  }
-}
-
-void showArray(String mesg, int m[], int imax) {
-  char tmp[2];
-  lcd.setCursor(0,0);
-  for (int i=0; i<7; i++) {
-    sprintf(tmp, "%02X", m[i]);
-    lcd.print(tmp);
-    lcd.print(' ');
-  }
-}
-void sendCMD(int x[], int imax) {
-  // Write a set of bytes to the telescope
-  for (int i=0; i<imax; i++) Uart.write(x[i]);
-}
-
-
-
-int inbyte, outbyte;
-int istatus = 0;
-int ostatus = 0;
-int LAST[] = {0, 0, 0, 0, 0, 0, 0};
-int CMD[] = {0, 0, 0, 0, 0, 0, 0};
-
-
-void communicate() {
-  
-  lcd.setCursor(0,3);
-  while (Uart.available() > 0 ) {
+void telescopeStatus() {
+  /* Read and Parse any status received from the telescope.*/
+  if (Uart.available() > 0) {
+//    if ( (millis()-last) > 500 ) Serial.println("");
+//    last = millis();    
     inbyte = Uart.read();
-    lcd.print(inbyte, DEC);
-    lcd.print(' ');
+    if (inbyte == 59) {
+      if (istatus > 0) {
+        printStatus();
+      }
+      
+//      istatus = 0;
+    }
+    STATUS[istatus] = inbyte;
+    istatus++;
   }
+}
+
+
+String parseArgs(int imax) {
+  String out;
+  char tmp[2];
+  for (int i=0; i<imax+1; i++) {
+    sprintf(tmp, "%d", STATUS[i]);
+    out += tmp;
+  }
+  return out;
+}
+
+
+
+void printStatus() {
+  /* Write a command array to the lcd screen */
+//  Serial.print(mesg);
   
-  lcd.setCursor(0,1);
-  while (Serial.available() > 0) {
-    outbyte = Serial.read();
-    
-    lcd.print(outbyte, DEC);
-    lcd.print(' ');
-    
-    // Send to telescope
-    Uart.write(outbyte);
+  char tmp[2];
+//  lcd.setCursor(2,4);
+  Serial.println();
+  for (int i=0; i<istatus; i++) {
+    sprintf(tmp, "%02X", STATUS[i]);
+    Serial.print(STATUS[i]);
+    Serial.print(' ');
+//    lcd.print(tmp);
+    STATUS[i] = 0;
   }
+  Serial.println();
+  istatus = 0;
 }
 
 
-int stopx[] = {59,4,13,17,37,0,185};
-int stopy[] = {59,4,13,16,37,0,184};
-void sendStop() {
-  for (int i=0; i<7; i++) Uart.write(stopx[i]);
-  for (int i=0; i<7; i++) Uart.write(stopy[i]);
-}
 
-int btn = HIGH;
-void stopButton() {
-  // with pullup this is ok to ignore debounce
-  btn = digitalRead(PIN_D7);
-  if (btn == LOW) {
-    sendStop();
-    lcd.setCursor(0,0);
-    lcd.print("STOP! ");
-    delay(100);
-    lcd.setCursor(0,0);
-    lcd.print("Computer");
-    btn = HIGH;
-    Uart.clear();
-  }
-}
 
 void setup() {
   Serial.begin(19200);
   Uart.begin(19200);
+  lcd.createChar(0, SLASH);
   lcd.begin(16, 4);
-  lcd.setCursor(0,0);
-  lcd.print("Computer:");
-  lcd.setCursor(0,2);
-  lcd.print("Mount:");
-  
-  pinMode(PIN_D7, INPUT_PULLUP);
-//  pinMode(PIN_D1, INPUT_PULLUP); 
-//  attachInterrupt(PIN_D1,stopButton,CHANGE);
   
 }
 
-int value = 0;
 void loop() {
   showSpinner();
-  communicate();
-  stopButton();
+  telescopeStatus();
+//  lcdWrite();
 }
+

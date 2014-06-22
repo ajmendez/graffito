@@ -7,39 +7,127 @@
 5 7   GND
 6 23  Drop / +5v
 '''
+import os
 import sys
 import time
 import serial
+from datetime import datetime
 
 
+DEVICES = ['/dev/tty.usbserial-A100OZXL',
+           '/dev/tty.usbmodem12341']
+
+def get_device():
+  '''get the device'''
+  if len(sys.argv) > 1:
+    return sys.argv[1]
+  else:
+    for device in DEVICES:
+      if os.path.exists(device):
+        return device
+
+DEVICE = get_device()
+BAUD = 19200
+TIMEOUT = 0.2
+
+class Trigger(object):
+    def __init__(self, delta=1.0):
+        self.last = datetime.now()
+        self.delta = delta
+        
+    def trigger(self):
+        now = datetime.now()
+        trig = ((now-self.last).total_seconds() > self.delta)
+        if trig:
+            self.last = now
+        return trig
 
 
-def main():
-    # device = '/dev/tty.usbserial-A100OZXL'
-    device = '/dev/tty.usbmodem12341'
-    baud = 19200
-    # parity = False
-    # stop = 1 bit
-    # hardware flow 
-    with serial.Serial(device, baud, timeout=0.2, rtscts=0) as s:
+CONTROLLERS = {
+    13:'mc',
+    16:'at',
+    17:'az',
+}
+
+COMMANDS = {
+    1:   'location',
+    36:  'move neg',
+    37:  'move pos',
+    254: 'version',
+}
+
+TEMPLATE = '''    {tx} > {rx} : {len} : {command} [{data}]'''
+
+def get_location(arr):
+    # return arr[0]/256.0*360 + arr[1]/256.0*60 + arr[2]/256.0*60
+    return sum([(256*i - x)/(256.0*i) for i,x in enumerate(arr,1)])
+
+
+def get_data(command, cmd):
+    if command == 'version':
+        if len(cmd) == 8:
+            return cmd[5] + cmd[6]/100.
+        else:
+            return 'request'
+    
+    elif 'move' in command:
+        return cmd[5]
+    
+    elif command == 'location':
+        if len(cmd) == 9:
+            return get_location(cmd[5:7])
+        else:
+            return 'request'
+    
+        
+        
+
+def parse(cmd):
+    if len(cmd) < 5: return
+    command = COMMANDS.get(cmd[4], cmd[4])
+    items = {
+        'tx': CONTROLLERS.get(cmd[2], cmd[2]),
+        'rx': CONTROLLERS.get(cmd[3], cmd[3]),
+        'len': cmd[2]-1,
+        'command': command,
+        'data': get_data(command, cmd)
+    }
+    return TEMPLATE.format(**items)
+
+def main(device=DEVICE, baud=BAUD, timeout=TIMEOUT):
+    trig = Trigger()
+    cmd = []
+    tmp = 0
+    
+    with serial.Serial(device, baud, timeout=timeout) as s:
         try:
-            x = []
             while True:
-                ch = s.read()
-                if len(ch) == 0: continue
-                tmp = ch.encode('hex')
+                char = s.read()
+                
+                if len(char) > 0:
+                    # tmp = ch.encode('hex')
+                    tmp = ord(char)
+                
+                hasdata = ( len(cmd) > 0 )
+                newcommand = ( (tmp == 59) or (tmp == '3b') )
+                trigger = ( trig.trigger() )
                 
                 
-                if tmp == '3b':
-                    print x
-                    x = []
-                x.append(tmp)
-                # if tmp == '3b':
-                #     print
-                # print tmp,
+                if hasdata and (newcommand or trigger):
+                    print cmd
+                    try:
+                        print parse(cmd)
+                    except Exception as e:
+                        print 'Failed to parse: ', e
+                        raise
+                        
+                    
+                    cmd = []
                 
-                # print '[{}]'.format(ord(out))
-                # print 'b:{} h:{} [{}]'.format(bin(out), hex(out), out)
+                if len(char)> 0:
+                    cmd.append(tmp)
+                
+                
         except KeyboardInterrupt as e:
             print 'User quit'
         except Exception as e:
@@ -82,6 +170,9 @@ def main():
         
 
 if __name__ == '__main__':
+    from pysurvey import util
+    util.setup_stop()
+    
     main()
     # if 'test' in sys.argv[1:]:
     #     test()
