@@ -1,6 +1,8 @@
 /* Debug communication 
    Mendez May 2014
-   BROKEN!  gaol: read in data from serial send it out to the serial port
+   Take in data from the serial, and push it out to the telescope
+   CMD: 59 4 13 17 36 9 177
+   CMD: 59 4 13 17 37 0 185
 */
 
 #include <LiquidCrystal.h>
@@ -15,6 +17,8 @@ char sep = ' ';
 char newline = '\n';
 boolean isdone = false;
 boolean ispython = false;
+int iskip = 59;
+int ichar = 0;
 
 
 void communicate() {
@@ -37,24 +41,20 @@ void communicate() {
   }
 }
 
+
+
 void sendMesg() {
   if (outstr.length() > 0 ) {
+    outstr += ' ';
+    
     int s = outstr.toInt();
-    lcd.setCursor(0, 1);
+    
+    lcd.setCursor(ichar, 1);
+    if (s == iskip) ichar = 0;
+    ichar += outstr.length();
     lcd.print(s);
     Uart.write((char)s);
-    
-//    if (s == 59) Serial.println();
-//    
-//    Serial.print('<');
-//    Serial.print(s,DEC);
-//    Serial.print('>');
-//    Uart.write(int(s));
     outstr = "";
-//    if (isdone) {
-//      Serial.println();
-//      isdone = false;
-//    }
   }
 }
 

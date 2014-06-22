@@ -12,7 +12,8 @@ import serial
             # write(s, [59, 4, 13, 17, 37, 0, 185])
             
 
-
+# 59 4 13 17 36 9 177 
+# 59 4 13 17 37 0 185
 
 # HEX bytes for different commands
 CMD = {
