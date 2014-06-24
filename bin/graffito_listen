@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+import sys
+from graffito import telescope
+
+# TODO: replace with argparse or something.
+DEVICE = (sys.argv[1] if len(sys.argv)==2 else None)
+
+
+def main():
+    try:
+        with telescope.Telescope(device=DEVICE) as tele:
+            while True:
+                output = tele.get()
+                if output:
+                    print tele.niceprint(niceprint, showcmd=True)
+    
+    except Exception as e:
+        print 'Error!', e
+        raise
+        
+    except KeyboardInterrupt as e:
+        print 'Goodbye!'
+        return
+
+
+
+if __name__ == '__main__':
+    from pysurvey import util
+    util.setup_stop()
+    
+    main()
