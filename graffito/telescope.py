@@ -100,7 +100,7 @@ class Telescope(serial.Serial):
             n = 2+cmd[1] # add in the prefix and length to the chars.
             return cmd[-1] == self.checksum(cmd[:n])
         except Exception as e:
-            print 'Failed to get checksum: {}'.format(e)
+            print 'Packet failed checksum?: {}'.format(e)
             return False
     
     def parse(self, cmd):
@@ -108,7 +108,7 @@ class Telescope(serial.Serial):
         output = dict(
             sender   = HOSTS.get(cmd[2], cmd[2]),
             receiver = HOSTS.get(cmd[3], cmd[3]),
-            command  = COMMANDS.get(cmd[4], str(cmd[4])),
+            command  = COMMANDS.get(cmd[4], str(cmd[4])), # uniformly a string
             data     = self.getdata(cmd),
             cmd      = cmd,
         )
@@ -122,7 +122,10 @@ class Telescope(serial.Serial):
     def parsedegrees(self, angle, bits=24):
         '''Convert the fraction on a circle into a 24bit array.
         TODO: handle angles > 360 -- modulo?
-        TODO: handle angles very close to 360 -- this may not be a problem'''
+        TODO: handle angles very close to 360 
+              -- this may not be a problem?
+              -- fails for angle == 360
+        '''
         if (angle > 360) or ((angle-360) > 0.0001):
             raise ValueError('you should figure out how to "float" correctly')
         value = int(angle/360.0 * float(1<<24))
