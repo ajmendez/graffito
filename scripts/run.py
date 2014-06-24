@@ -26,9 +26,9 @@ CMD = {
     'unknown':'05',
 }
 HOST = {
-    'HC':'04',
-    'AZ':'10',
-    'AT':'11',
+    'HC':'0d',
+    'AZ':'11',
+    'AT':'10',
     '??':'03',
 }
 MOVE = {
@@ -42,26 +42,27 @@ class Mount(serial.Serial):
         # t = ['3b', '04', '0d', '11', 'fe']
         # t.append(self.checksum(t))
         # self.run_cmd(t)
-        # self.run('AT','unknown')
+        self.run('AZ','unknown')
+        self.run('AZ','ver')
         # return
         
         # print self.run('AZ', )
         a,b = 'pos','neg'
         a,b = b,a
         # print self.run('AZ', a, '09')
-        self.run('AT', a, '09')
+        self.run('AZ', a, '09')
         time.sleep(1)
         # print self.run('AZ', b, '00')
-        self.run('AT', b, '09')
+        self.run('AZ', b, '09')
         time.sleep(1)
-        self.run('AT', b, '00')
+        self.run('AZ', b, '00')
     
     def checksum(self, hcmd):
         items = [int(t,16) for t in hcmd[1:]]
         return hex( (1<<16) - sum(items))[-2:]
     
     def run(self, client, command, data=None):
-        hcmd = [CMD['prefix'], HOST['HC'], CMD['nc'],
+        hcmd = [CMD['prefix'], '04', HOST['HC'],
                 HOST[client], CMD[command]]
         if data is not None:
             hcmd.append(data)
