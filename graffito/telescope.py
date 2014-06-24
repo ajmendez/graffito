@@ -56,10 +56,12 @@ rCOMMANDS = {v:k for k,v in COMMANDS.iteritems()}
 class Telescope(serial.Serial):
     '''Celestron Nextstar SLT device controller.'''
     def __init__(self, device=None, baud=BAUD, timeout=TIMEOUT, **kwargs):
-        self._device = self.getdevice(device)
-        self._baud = baud
-        self._timeout = timeout
-        super(Telescope, self).__init__(self._device, self._baud, 
+        # self._device = self.getdevice(device)
+        # self._baud = baud
+        # self._timeout = timeout
+        # use .port, .baudrate, .timeout
+        super(Telescope, self).__init__(port=self._device,
+                                        baudrate=self._baud,
                                         timeout=self._timeout, **kwargs)
     
     def okdevice(self, device):
@@ -85,15 +87,15 @@ class Telescope(serial.Serial):
     def getdata(self, cmd):
         '''Grab the data payload from the packet. If no data, return None'''
         try:
-            n = cmd[2] - 2 # ignore the sender / receiver
-            return cmd[4:4+n]
+            n = cmd[1] - 3 # ignore the sender / receiver
+            return cmd[5:5+n]
         except:
             return None
     
     def okchecksum(self, cmd):
         '''ok the packet checksum'''
         try:
-            n = 2+cmd[2] # add in the prefix and length to the chars.
+            n = 2+cmd[1] # add in the prefix and length to the chars.
             return cmd[-1] == self.checksum(cmd[:n])
         except Exception as e:
             print 'Failed to get checksum: {}'.format(e)
@@ -242,10 +244,21 @@ class Telescope(serial.Serial):
             self.run('altitude', command, altitude)
         if azimuth:
             self.run('azimuth', command, azimuth)
-        
-        # TODO do blocking check?  check isslew
-        
-        
+    
+    
+    def blocking_goto(self, *args, **kwargs):
+        '''Block while we slew'''
+        self.goto(*args, *kwargs)
+        while self.isslew():
+            # sleweing
+            time.sleep(0.1)
+    
+    
+    def isslew(self):
+        output = self.run('slew')
+        return output['data'] != 0xFF
+    
+    
     def cordwrap(self, location):
         '''set the cord wrap position.'''
         for ax in ['at', 'az']:

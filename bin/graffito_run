@@ -16,7 +16,7 @@ from graffito import telescope
 
 # TODO: replace with argparse or something.
 # DEVICE = (sys.argv[1] if len(sys.argv)==2 else None)
-DEVICE = (sys.argv[1] if (len(sys.argv)==2) & (os.path.exists(sys.argv[1])) else None)
+DEVICE = (sys.argv[1] if (len(sys.argv)>=2) & (os.path.exists(sys.argv[1])) else None)
 DEBUG  = ('debug' in sys.argv)
 
 def parsedata(cmd):

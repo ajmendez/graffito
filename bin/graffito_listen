@@ -3,7 +3,8 @@ import sys
 from graffito import telescope
 
 # TODO: replace with argparse or something.
-DEVICE = (sys.argv[1] if len(sys.argv)==2 else None)
+DEVICE = (sys.argv[1] if (len(sys.argv)>=2) & (os.path.exists(sys.argv[1])) else None)
+DEBUG  = ('debug' in sys.argv)
 
 
 def main():
@@ -12,11 +13,12 @@ def main():
             while True:
                 output = tele.get()
                 if output:
-                    print tele.niceprint(niceprint, showcmd=True)
+                    print tele.niceprint(output, showcmd=True)
     
     except Exception as e:
         print 'Error!', e
-        raise
+        if DEBUG:
+            raise
         
     except KeyboardInterrupt as e:
         print 'Goodbye!'
@@ -25,7 +27,8 @@ def main():
 
 
 if __name__ == '__main__':
-    from pysurvey import util
-    util.setup_stop()
+    if DEBUG:
+        from pysurvey import util
+        util.setup_stop()
     
     main()
