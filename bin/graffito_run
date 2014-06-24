@@ -16,7 +16,8 @@ from graffito import telescope
 
 # TODO: replace with argparse or something.
 # DEVICE = (sys.argv[1] if len(sys.argv)==2 else None)
-DEVICE = (sys.argv[1] if (len(sys.argv)>=2) & (os.path.exists(sys.argv[1])) else None)
+print len(sys.argv)
+DEVICE = (sys.argv[1] if ((len(sys.argv)>=2) and (os.path.exists(sys.argv[1])) ) else None)
 DEBUG  = ('debug' in sys.argv)
 
 def parsedata(cmd):
@@ -44,12 +45,18 @@ def main():
     See graffito.telescope.COMMANDS for known ones.
     '''
     with telescope.Telescope(device=DEVICE) as tele:
-        print 'Configured with {}'.format(tele._device)
+        print 'Configured with {}'.format(tele.port)
         while True:
             try:
                 usercmd = raw_input('> ')
                 if usercmd in ['exit', 'quit', 'q']:
                     return
+                if len(usercmd) == 0:
+                    output = tele.get()
+                    if output:
+                        tele.niceprint(output, showcmd=True)
+                    continue
+                
                 tmp = usercmd.split(' ')
                 axis, command = map(parseint, tmp[:2])
                 data = parsedata(tmp)

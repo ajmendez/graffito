@@ -6,9 +6,11 @@
 */
 
 #include <LiquidCrystal.h>
+#define HWSERIAL Serial1 //switch to this
 
 LiquidCrystal lcd(PIN_B0, PIN_B1, PIN_B2, PIN_B3, PIN_B7, PIN_D0);
 HardwareSerial Uart = HardwareSerial();
+
 
 int inbyte;
 char outbyte;

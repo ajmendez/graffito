@@ -3,6 +3,7 @@
 import os
 import sys
 import serial
+from pprint import pprint
 
 
 DEVICES = [
@@ -14,6 +15,7 @@ DEVICES = [
 BAUD = 19200
 TIMEOUT = 0.2
 
+TEMP = True
 
 # bytes of interest
 PREFIX = 59
@@ -25,8 +27,8 @@ HOSTS = {
 }
 rsHOSTS = {v[0]:k for k,v in HOSTS.iteritems()}
 rHOSTS  = {v[1]:k for k,v in HOSTS.iteritems()}
-sHOSTS  = {v[0]:k for k,v in HOSTS.iteritems()}
-HOSTS   = {v[1]:k for k,v in HOSTS.iteritems()}
+sHOSTS  = {k:v[0] for k,v in HOSTS.iteritems()}
+HOSTS   = {k:v[1] for k,v in HOSTS.iteritems()}
 
 
 
@@ -56,13 +58,13 @@ rCOMMANDS = {v:k for k,v in COMMANDS.iteritems()}
 class Telescope(serial.Serial):
     '''Celestron Nextstar SLT device controller.'''
     def __init__(self, device=None, baud=BAUD, timeout=TIMEOUT, **kwargs):
-        # self._device = self.getdevice(device)
+        device = self.getdevice(device)
         # self._baud = baud
         # self._timeout = timeout
         # use .port, .baudrate, .timeout
-        super(Telescope, self).__init__(port=self._device,
-                                        baudrate=self._baud,
-                                        timeout=self._timeout, **kwargs)
+        super(Telescope, self).__init__(port=device,
+                                        baudrate=baud,
+                                        timeout=timeout, **kwargs)
     
     def okdevice(self, device):
         '''Check that the device is there.
@@ -105,7 +107,7 @@ class Telescope(serial.Serial):
         '''Parse the response from the telescope.'''
         output = dict(
             sender   = HOSTS.get(cmd[2], cmd[2]),
-            receiver = CONTROLLERS.get(cmd[2], cmd[2]),
+            receiver = HOSTS.get(cmd[3], cmd[3]),
             command  = COMMANDS.get(cmd[4], str(cmd[4])),
             data     = self.getdata(cmd),
             cmd      = cmd,
@@ -130,11 +132,13 @@ class Telescope(serial.Serial):
         '''Get the response from command'''
         cmd = []
         while self.inWaiting():
-            char = s.read()
+            char = self.read()
             if len(char) > 0:
                 cmd.append(ord(char))
         
         if len(cmd) > 0:
+            if TEMP:
+                cmd = map(int, (''.join(chr(c) for c in cmd)).strip().split(' '))
             assert self.okchecksum(cmd)
             return self.parse(cmd)
     
@@ -146,7 +150,7 @@ class Telescope(serial.Serial):
     
     def niceprint(self, output, showcmd=False):
         '''parse the output into a nice string'''
-        output = nicevalue(output)
+        output = self.nicevalue(output)
         outstring = '{sender:>10s}>{receiver:<10s} {command:>15s} : {data}'.format(**output)
         if showcmd:
             outstring = '{main:60s} | {cmd}'.format(main=outstring, **output)
@@ -167,7 +171,9 @@ class Telescope(serial.Serial):
     def craftvalue(self, command, data=None):
         '''handles special values within the command package'''
         if command == 'move':
-            command = 'pos_move' if (data is not None) & (data[0] > 0) else 'neg_move'
+            if data is not None:
+                command = 'pos_move' if (data[0] > 0) else 'neg_move'
+                data[0] = abs(data[0])
         
         cmd = rCOMMANDS.get(command, command)
         if data is None:
@@ -193,8 +199,11 @@ class Telescope(serial.Serial):
     
     def _run(self, cmd):
         '''Internal packet run'''
-        for c in cmd:
-            self.write(chr(c))
+        if TEMP:
+            self.write(' '.join(['%d'%c for c in cmd]))
+        else:
+            for c in cmd:
+                self.write(chr(c))
         return self.get()
     
     def run(self, axis, command, data=None):
@@ -248,7 +257,7 @@ class Telescope(serial.Serial):
     
     def blocking_goto(self, *args, **kwargs):
         '''Block while we slew'''
-        self.goto(*args, *kwargs)
+        self.goto(*args, **kwargs)
         while self.isslew():
             # sleweing
             time.sleep(0.1)
