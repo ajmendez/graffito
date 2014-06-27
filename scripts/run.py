@@ -42,7 +42,7 @@ class Mount(serial.Serial):
         # t = ['3b', '04', '0d', '11', 'fe']
         # t.append(self.checksum(t))
         # self.run_cmd(t)
-        self.run('AZ','unknown')
+        # self.run('AZ','unknown')
         self.run('AZ','ver')
         # return
         
