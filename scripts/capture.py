@@ -4,12 +4,24 @@
 # 06.2014: Mendez
 
 '''
+
+THEORY
 1 20  GND or CTS
 2 2   Data out
 3 6,8 +12V
 4 3   Data In
 5 7   GND
 6 23  Drop / +5v
+
+
+New Cable [Silver 6pin] left -> right
+1 5v unplugged, CTS 
+2 0v unplugged, GND
+3 5v unplugged, DATA ?
+4 12V
+5 5V unplugged, data
+6 5V unplugged, 0v plugged in but noisy 
+
 '''
 
 

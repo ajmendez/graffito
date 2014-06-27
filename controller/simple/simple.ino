@@ -9,8 +9,8 @@
 #define HWSERIAL Serial1 //switch to this
 
 LiquidCrystal lcd(PIN_B0, PIN_B1, PIN_B2, PIN_B3, PIN_B7, PIN_D0);
-HardwareSerial Uart = HardwareSerial();
-
+//HardwareSerial Uart = HardwareSerial();
+#define Uart Serial1
 
 int inbyte;
 char outbyte;
@@ -18,7 +18,7 @@ String outstr = "";
 char sep = ' ';
 char newline = '\n';
 boolean isdone = false;
-boolean ispython = false;
+boolean ispython = true;
 int iskip = 59;
 int ichar = 0;
 

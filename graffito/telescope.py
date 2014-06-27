@@ -15,7 +15,7 @@ DEVICES = [
 BAUD = 19200
 TIMEOUT = 0.2
 
-TEMP = True
+TEMP = False
 
 # bytes of interest
 PREFIX = 59
@@ -134,12 +134,14 @@ class Telescope(serial.Serial):
     def get(self):
         '''Get the response from command'''
         cmd = []
-        while self.inWaiting():
+        while self.inWaiting() & len(cmd) > 3:
             char = self.read()
             if len(char) > 0:
                 cmd.append(ord(char))
+            if cmd[0] == 0:
+                cmd.pop(0)
         
-        if len(cmd) > 0:
+        if len(cmd) > 1:
             if TEMP:
                 cmd = map(int, (''.join(chr(c) for c in cmd)).strip().split(' '))
             assert self.okchecksum(cmd)

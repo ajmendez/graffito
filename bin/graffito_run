@@ -57,7 +57,10 @@ def main():
                         tele.niceprint(output, showcmd=True)
                     continue
                 
-                tmp = usercmd.split(' ')
+                tmp = (usercmd.replace(',','')
+                              .replace('[','')
+                              .replace(']','')
+                              .split(' ') )
                 axis, command = map(parseint, tmp[:2])
                 data = parsedata(tmp)
                 packet = tele.craft(axis, command, data)
