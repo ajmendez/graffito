@@ -36,8 +36,10 @@ def main(device, baud, timeout=0.1):
     #     print 'User is done'
     #     return
 
-
+def listen():
+    term = serial.tools.miniterm.main()
 
 if __name__ == '__main__':
     print len(sys.argv)
-    main(None, None)
+    # main(None, None)
+    listen()

@@ -69,14 +69,16 @@ def main():
                 if output:
                     print tele.niceprint(output, showcmd=True)
             
+            except KeyboardInterrupt as e:
+                print ' ! Goodbye'
+                return
+            
             except Exception as e:
-                print ' > Failed to craft! ', e
+                print e
+                print ' ! Failed to craft '
                 if DEBUG:
                     raise
                 
-            except KeyboardInterrupt as e:
-                print 'Goodbye!'
-                return
 
 
 

@@ -53,6 +53,13 @@ COMMANDS = {
 rCOMMANDS = {v:k for k,v in COMMANDS.iteritems()}
 
 
+def getdevice():
+    '''Extract a device from the serial'''
+    for possible in sys.argv[1:]:
+        if os.path.exists(possible):
+            return possible
+    
+
 
 
 class Telescope(serial.Serial):
