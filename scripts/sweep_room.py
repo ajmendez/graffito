@@ -14,9 +14,10 @@ def updatescreen(step,steps):
     sys.stdout.write('.')
     sys.stdout.flush()
     if (step%(steps/10)==0) or (step==steps) :
-        deltatime = float(steps-step)/step*(datetime.now()-START).total_seconds()
-        print ' Step: {:02d} Time Left: {:0.2f}[s]'.format(
-                  step, deltatime)
+        percent = float(step)/steps
+        deltatime = (steps-step)/float(step)*(datetime.now()-START).total_seconds()
+        print ' Step: {:02d} Time Left: {:0.0f}[s] Percent: {:0.0f}%'.format(
+                  step, deltatime, percent*100.0)
                   
         
     
@@ -25,11 +26,14 @@ def updatescreen(step,steps):
 def main(device):
     '''A simple no feedback run of the telescope to
     sweep a room with multiple steps.'''
-    speed = 8    # Mount movement speed
-    delta = 0.3  # [seconds] to wait during move
-    delza = 1.7  # [seconds] additional time to wait for at
-    pause = 4.0  # [seconds] between frames
-    steps = 40   # number of steps
+    speed = 7    # Mount movement speed
+    delta = 0.1  # [seconds] to wait during move
+    delza = 0.9  # [seconds] additional time to wait for at
+    pause = 11.0  # [seconds] between frames
+    steps = 200   # number of steps
+    
+    azsign = -1
+    atsign = 1
     
     if DEBUG:
         pause = 0.5
@@ -40,8 +44,8 @@ def main(device):
             try:
                 for step in range(1,steps+1):
                     # step is 1 indexed
-                    tele.run('az', 'move', [-speed])
-                    tele.run('at', 'move', [-speed])
+                    tele.run('az', 'move', [azsign*speed])
+                    tele.run('at', 'move', [atsign*speed])
                     time.sleep(delta)
                     tele.run('az', 'move', [0])
                     time.sleep(delza)
@@ -56,10 +60,10 @@ def main(device):
             finally:
                 # return back to staring position.
                 if RETURN:
-                    user = raw_input('Press [enter] to return camera')
+                    raw_input('Press [enter] to return camera')
                     print 'Wait {} seconds'.format(sum(moves))
-                    tele.run('az', 'move', [speed])
-                    tele.run('at', 'move', [speed])
+                    tele.run('az', 'move', [-azsign*speed])
+                    tele.run('at', 'move', [-atsign*speed])
                     time.sleep(moves[0])
                     tele.run('az', 'move', [0])
                     time.sleep(moves[1])
